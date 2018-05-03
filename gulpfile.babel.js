@@ -16,33 +16,37 @@ import eslint from 'gulp-eslint'
 
 
 /* Set up directories */
-// Root Dir
-const rootDir = '.'
-
-//Resource paths
-const resourcesDir = rootDir + '/src'
-const resourceStyles = resourcesDir + '/styles'
-const resourceAssets = resourcesDir + '/assets'
-const resourceScripts = resourcesDir + '/scripts'
-const resourceVendors = resourcesDir + '/vendors'
-
-//Dist paths
-const distDir = rootDir + '/dist'
-const distStyles = distDir + '/styles'
-const distAssets = distDir + '/assets'
-const distScripts = distDir + '/scripts'
-const distVendors = distDir + '/vendors'
+const config = {
+  paths: {
+    src: {
+      assets: './src/assets',
+      styles: './src/styles',
+      scripts: './src/scripts',
+      vendors: './src/vendors'
+    },
+    dist: {
+      assets: './dist/assets',
+      styles: './dist/styles',
+      scripts: './dist/scripts',
+      vendors: './dist/vendors'
+    }
+  },
+  localServer: {
+    host: '0.0.0.0',
+    port: 3000,
+    name: 'Automate Gulp'
+  }
+}
 
 gulp.task('log', () => {
   gutil.log('=== log task ===')
 })
 
-
 gulp.task('connect', function() {
   connect.server({
-    host: '0.0.0.0',
-    port: 3000,
-    name: 'Automate Gulp',
+    host: config.localServer.host,
+    port: config.localServer.port,
+    name: config.localServer.name,
     livereload: true
   })
   connect.serverClose()
@@ -54,7 +58,7 @@ gulp.task('connect', function() {
  */
 gulp.task('styles', () => {
   gutil.log('running styles task')
-  return gulp.src(resourceStyles + '/main.scss')
+  return gulp.src(config.paths.src.styles + '/main.scss')
     .pipe(gulpStylelint())
     .pipe(sourcemaps.init())
     .pipe(sass({
@@ -63,7 +67,7 @@ gulp.task('styles', () => {
     .on('error', gutil.log)
     .pipe(postcss())
     .pipe(sourcemaps.write("."))
-    .pipe(gulp.dest(distStyles))
+    .pipe(gulp.dest(config.paths.dist.styles))
     .pipe(connect.reload())
 })
 
@@ -75,7 +79,7 @@ gulp.task('scripts', () => {
   gutil.log('running scripts task')
 
   return rollup({
-    input: resourceScripts + '/main.js',
+    input: config.paths.src.scripts + '/main.js',
     format: 'es'
   })
     .pipe(source('main.js'))
@@ -85,7 +89,7 @@ gulp.task('scripts', () => {
     .pipe(babel())
     .pipe(uglify())
     .pipe(sourcemaps.write("."))
-    .pipe(gulp.dest(distScripts))
+    .pipe(gulp.dest(config.paths.dist.scripts))
     .pipe(connect.reload())
 })
 
@@ -94,8 +98,8 @@ gulp.task('scripts', () => {
  * @return {[type]} [description]
  */
 gulp.task('assets', () => {
-  return gulp.src(resourceAssets + '/**/*')
-    .pipe(gulp.dest(distAssets))
+  return gulp.src(config.paths.src.assets + '/**/*')
+    .pipe(gulp.dest(config.paths.dist.assets))
 })
 
 /**
@@ -103,16 +107,16 @@ gulp.task('assets', () => {
  * @return {[type]} [description]
  */
 gulp.task('vendors', () => {
-  return gulp.src(resourceVendors + '/**/*')
-    .pipe(gulp.dest(distVendors))
+  return gulp.src(config.paths.src.vendors + '/**/*')
+    .pipe(gulp.dest(config.paths.dist.vendors))
 })
 
 /**
  * Watch files changes
  */
 gulp.task('watch', () => {
-  gulp.watch(resourceStyles + '/**/*', ['styles'])
-  gulp.watch(resourceScripts + '/**/*', ['scripts'])
+  gulp.watch(config.paths.src.styles + '/**/*', ['styles'])
+  gulp.watch(config.paths.src.scripts + '/**/*', ['scripts'])
 })
 
 gulp.task('default', ['connect', 'scripts', 'styles', 'assets', 'vendors', 'watch'])
